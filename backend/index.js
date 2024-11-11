@@ -1,3 +1,5 @@
+require('dotenv').config();
+
 const express = require('express');
 const mongoose = require('mongoose');
 const multer = require('multer');
@@ -20,15 +22,13 @@ if (!fs.existsSync(uploadDir)) {
 }
 
 // MongoDB Connection
-mongoose.connect('mongodb+srv://prakashgupta56:12345@cluster0.gmjo5.mongodb.net/e-commerce', {
-    useNewUrlParser: true,
-    useUnifiedTopology: true
-})
-.then(() => console.log('MongoDB connected'))
-.catch(err => {
+mongoose.connect(process.env.MONGO_URI)
+  .then(() => console.log('MongoDB connected'))
+  .catch(err => {
     console.error('Failed to connect to MongoDB:', err);
     process.exit(1);
-});
+  });
+
 
 // Multer Setup
 const storage = multer.diskStorage({
@@ -95,7 +95,7 @@ app.post('/signup', async (req, res) => {
     }
   }
 
-  const token = jwt.sign(data, 'secret_ecom');
+  const token = jwt.sign(data, process.env.JWT_SECRET);
   success = true;
   res.json({ success, token })
 })
@@ -114,7 +114,7 @@ app.post('/login', async (req, res) => {
       }
       success = true;
       console.log(user.id);
-      const token = jwt.sign(data, 'secret_ecom');
+      const token = jwt.sign(data, process.env.JWT_SECRET);
       res.json({ success, token });
     }
     else {
@@ -210,7 +210,7 @@ const fetchuser = async (req, res, next) => {
     res.status(401).send({ errors: "Please authenticate using a valid token" });
   }
   try {
-    const data = jwt.verify(token, "secret_ecom");
+    const data = jwt.verify(token, process.env.JWT_SECRET);
     req.user = data.user;
     next();
   } catch (error) {
